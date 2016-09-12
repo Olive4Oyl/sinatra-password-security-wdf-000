@@ -1,3 +1,4 @@
+require 'pry'
 require "./config/environment"
 require "./app/models/user"
 class ApplicationController < Sinatra::Base
@@ -9,29 +10,40 @@ class ApplicationController < Sinatra::Base
 	end
 
 	get "/" do
-		erb :index
+		erb :index #renders an index.erb file with links to signup or login.
 	end
 
 	get "/signup" do
-		erb :signup
+		erb :signup #renders a form to create a new user. The form includes fields form username and password.
 	end
 
 	post "/signup" do
-		#your code here!
+		user = User.new(:username => params[:username], :password => params[:password])
+		if user.save
+			redirect '/login'
+		else 
+			redirect '/failure'
+		end
 	end
 
 
 	get "/login" do
-		erb :login
+		erb :login #renders a form for logging in
 	end
 
 	post "/login" do
-		#your code here!
+		user = User.find_by(:username => params[:username]) #find the user by username
+		if user && user.authenticate(params[:password]) #did we find the user (set as user) and the authenticate takes in a string as an argument and sees if it matches up against the password digest. It will return the user object
+			session[:user_id] = user.id #set the session's user id and redirect to /success route
+			redirect "/success"
+		else
+			redirect "/failure"
+		end
 	end
 
 	get "/success" do
 		if logged_in?
-			erb :success
+			erb :success #renders a success.erb page, which should display once a user is successfully logged in
 		else
 			redirect "/login"
 		end
